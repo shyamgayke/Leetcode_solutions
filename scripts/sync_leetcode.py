@@ -273,54 +273,44 @@ for latest in submissions:
 print("\nALL SUBMISSIONS PROCESSED SUCCESSFULLY!")
 
 # --------------------------------------------------
-# 4. Inspect Solution Article schema
+# 4. Retrieve official LeetCode solution
 # --------------------------------------------------
 
-print("\nInspecting Solution Article schema...")
+print("\nTesting official Solution retrieval...")
 
 data = graphql(
     """
-    query {
-        __type(name: "QuestionSolutionsNode") {
-            name
-            fields {
-                name
-                type {
-                    kind
-                    name
-                    ofType {
-                        kind
-                        name
-                    }
-                }
+    query officialSolution($titleSlug: String!) {
+        question(titleSlug: $titleSlug) {
+            solution {
+                id
+                canSeeDetail
+                content
             }
         }
     }
-    """
+    """,
+    {
+        "titleSlug": "longest-common-prefix",
+    },
 )
 
-solution_type = data.get("__type")
+question_solution = data["question"].get("solution")
 
-if not solution_type:
-    print("Could not inspect QuestionSolutionsNode.")
+if not question_solution:
+    print("No official solution available.")
 else:
-    print("\nQuestionSolutionsNode fields:")
+    print("\nOfficial Solution found!")
+    print(f"Solution ID: {question_solution.get('id')}")
+    print(
+        f"Can see detail: "
+        f"{question_solution.get('canSeeDetail')}"
+    )
 
-    fields = solution_type.get("fields") or []
+    content = question_solution.get("content")
 
-    if not fields:
-        print("No fields were returned.")
+    if content:
+        print("\nSolution content retrieved successfully.")
+        print(content[:1000])
     else:
-        for field in fields:
-            field_type = field.get("type", {})
-
-            type_name = field_type.get("name")
-
-            if not type_name and field_type.get("ofType"):
-                type_name = field_type["ofType"].get("name")
-
-            print(
-                f"- {field['name']}: "
-                f"{field_type.get('kind')} "
-                f"{type_name}"
-            )
+        print("Solution exists, but no content was returned.")
