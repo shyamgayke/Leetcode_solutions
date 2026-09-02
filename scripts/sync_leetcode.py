@@ -280,15 +280,18 @@ print("\nTesting Solution Article retrieval...")
 
 data = graphql(
     """
-    query questionSolutions($titleSlug: String!) {
-        questionSolutions(titleSlug: $titleSlug) {
-            id
-            canSeeDetail
+    query questionSolutions(
+        $filters: QuestionSolutionsFilterInput!
+    ) {
+        questionSolutions(filters: $filters) {
+            nodes {
+                __typename
+            }
         }
     }
     """,
     {
-        "titleSlug": submissions[0]["titleSlug"],
+        "filters": {}
     },
 )
 
