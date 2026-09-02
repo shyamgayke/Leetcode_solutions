@@ -366,11 +366,11 @@ print("\nALL SOLUTIONS PROCESSED SUCCESSFULLY!")
 
 
 
-   # --------------------------------------------------
-# 5. Inspect personal Solution Article structure
+# --------------------------------------------------
+# 5. Inspect personal Solution Article authors
 # --------------------------------------------------
 
-print("\nTesting personal Solution Article structure...")
+print("\nTesting personal Solution Article authors...")
 
 data = graphql(
     """
@@ -384,6 +384,9 @@ data = graphql(
                 node {
                     title
                     slug
+                    author {
+                        username
+                    }
                 }
             }
         }
@@ -402,3 +405,7 @@ for edge in data["ugcArticleSolutionArticles"]["edges"]:
     print("\n-----------------------------")
     print(f"Title: {article.get('title')}")
     print(f"Slug: {article.get('slug')}")
+    print(
+        f"Author: "
+        f"{article.get('author', {}).get('username')}"
+    )
