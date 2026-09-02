@@ -366,32 +366,50 @@ print("\nALL SOLUTIONS PROCESSED SUCCESSFULLY!")
 
 
 # --------------------------------------------------
-# 5. Test direct Solution Article retrieval
+# 5. Test Solution Article author field
 # --------------------------------------------------
 
-print("\nTesting direct Solution Article retrieval...")
-
-article_slug = "longest-prefix-in-a-string-array-by-z37v-ipk9"
+print("\nTesting Solution Article author...")
 
 data = graphql(
     """
-    query solutionArticleInformation(
-        $slug: String!
+    query ugcArticleSolutionArticles(
+        $questionSlug: String!
     ) {
-        solutionArticleInformation(
-            slug: $slug
+        ugcArticleSolutionArticles(
+            questionSlug: $questionSlug
         ) {
-            title
-            content
+            edges {
+                node {
+                    title
+                    slug
+                    author {
+                        userName
+                    }
+                }
+            }
         }
     }
     """,
     {
-        "slug": article_slug
+        "questionSlug": "longest-common-prefix"
     }
 )
 
-print("\nArticle:")
-print("Title:", data["solutionArticleInformation"]["title"])
-print("Content:")
-print(data["solutionArticleInformation"]["content"])
+print("\nArticles:")
+
+for edge in data["ugcArticleSolutionArticles"]["edges"]:
+    article = edge["node"]
+
+    author = article.get("author")
+
+    print(
+        f"Title: {article.get('title')}"
+    )
+    print(
+        f"Slug: {article.get('slug')}"
+    )
+    print(
+        f"Author: {author.get('userName') if author else None}"
+    )
+    print("-" * 50)
