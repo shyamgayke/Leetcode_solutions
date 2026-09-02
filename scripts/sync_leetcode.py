@@ -385,7 +385,7 @@ data = graphql(
                     title
                     slug
                     author {
-                        username
+                        userName
                     }
                 }
             }
