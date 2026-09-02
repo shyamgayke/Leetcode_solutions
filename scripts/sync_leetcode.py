@@ -36,10 +36,10 @@ def graphql(query, variables=None):
     data = response.json()
 
     if "errors" in data:
-    print("\nRAW LEETCODE RESPONSE:")
-    print(data)
-    raise RuntimeError(
-        f"LeetCode GraphQL error:\n{data['errors']}"
+        print("\nRAW LEETCODE RESPONSE:")
+        print(data)
+        raise RuntimeError(
+            f"LeetCode GraphQL error:\n{data['errors']}"
     )
 
     return data["data"]
