@@ -273,32 +273,54 @@ for latest in submissions:
 print("\nALL SUBMISSIONS PROCESSED SUCCESSFULLY!")
 
 # --------------------------------------------------
-# 4. Test Solution Article retrieval
+# 4. Inspect Solution Article schema
 # --------------------------------------------------
 
-print("\nTesting Solution Article retrieval...")
+print("\nInspecting Solution Article schema...")
 
 data = graphql(
     """
-    query questionSolutions(
-        $filters: QuestionSolutionsFilterInput!
-    ) {
-        questionSolutions(filters: $filters) {
-            __typename
+    query {
+        __type(name: "QuestionSolutionsNode") {
+            name
+            fields {
+                name
+                type {
+                    kind
+                    name
+                    ofType {
+                        kind
+                        name
+                    }
+                }
+            }
         }
     }
-    """,
-    {
-        "filters": {
-            "questionSlug": "longest-common-prefix",
-            "skip": 0,
-            "first": 5
-        }
-    },
+    """
 )
 
-print(data)
-solutions = data.get("questionSolutions")
+solution_type = data.get("__type")
 
-print("\nSolution API response:")
-print(solutions)
+if not solution_type:
+    print("Could not inspect QuestionSolutionsNode.")
+else:
+    print("\nQuestionSolutionsNode fields:")
+
+    fields = solution_type.get("fields") or []
+
+    if not fields:
+        print("No fields were returned.")
+    else:
+        for field in fields:
+            field_type = field.get("type", {})
+
+            type_name = field_type.get("name")
+
+            if not type_name and field_type.get("ofType"):
+                type_name = field_type["ofType"].get("name")
+
+            print(
+                f"- {field['name']}: "
+                f"{field_type.get('kind')} "
+                f"{type_name}"
+            )
