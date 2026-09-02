@@ -109,90 +109,165 @@ for item in submissions:
 
 
 # --------------------------------------------------
-# 3. Get submission list for latest problem
+# 3. Process recent accepted submissions
 # --------------------------------------------------
 
-latest = submissions[0]
+for latest in submissions:
 
-print("\nTesting code retrieval:")
-print(f"Problem: {latest['title']}")
-print(f"Slug: {latest['titleSlug']}")
+    print("\n" + "=" * 50)
+    print(f"Processing: {latest['title']}")
+    print(f"Slug: {latest['titleSlug']}")
 
-# Get problem number
-data = graphql(
-    """
-    query questionInfo($titleSlug: String!) {
-        question(titleSlug: $titleSlug) {
-            questionFrontendId
-        }
-    }
-    """,
-    {
-        "titleSlug": latest["titleSlug"],
-    },
-)
-
-question = data["question"]
-
-problem_number = question["questionFrontendId"]
-
-print(f"Problem Number: {problem_number}")
-
-data = graphql(
-    """
-    query questionSubmissionList(
-        $questionSlug: String!
-        $offset: Int!
-        $limit: Int!
-    ) {
-        questionSubmissionList(
-            questionSlug: $questionSlug
-            offset: $offset
-            limit: $limit
-        ) {
-            submissions {
-                id
-                statusDisplay
-                lang
-                timestamp
+    # Get problem number
+    data = graphql(
+        """
+        query questionInfo($titleSlug: String!) {
+            question(titleSlug: $titleSlug) {
+                questionFrontendId
             }
         }
+        """,
+        {
+            "titleSlug": latest["titleSlug"],
+        },
+    )
+
+    question = data["question"]
+
+    problem_number = str(
+        question["questionFrontendId"]
+    ).zfill(4)
+
+    folder_name = (
+        f"{problem_number}-{latest['titleSlug']}"
+    )
+
+    print(f"Problem Number: {problem_number}")
+
+    # --------------------------------------------------
+    # Get submission list
+    # --------------------------------------------------
+
+    data = graphql(
+        """
+        query questionSubmissionList(
+            $questionSlug: String!
+            $offset: Int!
+            $limit: Int!
+        ) {
+            questionSubmissionList(
+                questionSlug: $questionSlug
+                offset: $offset
+                limit: $limit
+            ) {
+                submissions {
+                    id
+                    statusDisplay
+                    lang
+                    timestamp
+                }
+            }
+        }
+        """,
+        {
+            "questionSlug": latest["titleSlug"],
+            "offset": 0,
+            "limit": 10,
+        },
+    )
+
+    result = data.get("questionSubmissionList")
+
+    if not result:
+        print("Could not retrieve submissions. Skipping.")
+        continue
+
+    submission_list = result["submissions"]
+
+    accepted = [
+        submission
+        for submission in submission_list
+        if submission["statusDisplay"] == "Accepted"
+    ]
+
+    if not accepted:
+        print("No accepted submission found. Skipping.")
+        continue
+
+    submission = accepted[0]
+
+    print(f"Submission ID: {submission['id']}")
+    print(f"Language: {submission['lang']}")
+
+    # --------------------------------------------------
+    # Retrieve actual submitted code
+    # --------------------------------------------------
+
+    data = graphql(
+        """
+        query submissionDetails($submissionId: Int!) {
+            submissionDetails(
+                submissionId: $submissionId
+            ) {
+                code
+            }
+        }
+        """,
+        {
+            "submissionId": int(submission["id"]),
+        },
+    )
+
+    details = data.get("submissionDetails")
+
+    if not details:
+        print("Could not retrieve code. Skipping.")
+        continue
+
+    # --------------------------------------------------
+    # Determine file extension
+    # --------------------------------------------------
+
+    language = submission["lang"].lower()
+
+    extensions = {
+        "cpp": "cpp",
+        "c": "c",
+        "python": "py",
+        "python3": "py",
+        "java": "java",
+        "javascript": "js",
+        "typescript": "ts",
+        "csharp": "cs",
+        "kotlin": "kt",
+        "swift": "swift",
+        "go": "go",
+        "rust": "rs",
     }
-    """,
-    {
-        "questionSlug": latest["titleSlug"],
-        "offset": 0,
-        "limit": 10,
-    },
-)
 
-result = data.get("questionSubmissionList")
+    extension = extensions.get(language, "txt")
 
-if not result:
-    raise RuntimeError(
-        "Could not retrieve submission list."
+    # --------------------------------------------------
+    # Save solution
+    # --------------------------------------------------
+
+    os.makedirs(folder_name, exist_ok=True)
+
+    solution_file = os.path.join(
+        folder_name,
+        f"solution.{extension}"
     )
 
-submission_list = result["submissions"]
+    with open(
+        solution_file,
+        "w",
+        encoding="utf-8"
+    ) as file:
+        file.write(details["code"])
 
-accepted = [
-    submission
-    for submission in submission_list
-    if submission["statusDisplay"] == "Accepted"
-]
+    print(f"Saved: {solution_file}")
 
-if not accepted:
-    raise RuntimeError(
-        "No accepted submission found."
-    )
-
-submission = accepted[0]
-
-print("\nAccepted submission found:")
-print(f"Submission ID: {submission['id']}")
-print(f"Language: {submission['lang']}")
-print(f"Timestamp: {submission['timestamp']}")
-
+print("\nALL SUBMISSIONS PROCESSED SUCCESSFULLY!")
 
 # --------------------------------------------------
 # 4. Retrieve actual submitted code
