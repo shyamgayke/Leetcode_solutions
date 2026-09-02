@@ -373,12 +373,19 @@ print("\nTesting personal Solution Article retrieval...")
 
 data = graphql(
     """
-    query {
-        ugcArticleSolutionArticles {
+    query ugcArticleSolutionArticles(
+        $questionSlug: String!
+    ) {
+        ugcArticleSolutionArticles(
+            questionSlug: $questionSlug
+        ) {
             __typename
         }
     }
-    """
+    """,
+    {
+        "questionSlug": "longest-common-prefix"
+    }
 )
 
 print(data)
