@@ -284,16 +284,14 @@ data = graphql(
         $filters: QuestionSolutionsFilterInput!
     ) {
         questionSolutions(filters: $filters) {
-            nodes {
-                __typename
-            }
+            __typename
         }
     }
     """,
-    {
-        "filters": {}
-    },
+    {"filters": {}},
 )
+
+print(data)
 
 solutions = data.get("questionSolutions")
 
