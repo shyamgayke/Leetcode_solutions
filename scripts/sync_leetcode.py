@@ -279,9 +279,13 @@ data = graphql(
     """
     query questionSolutionArticles(
         $questionSlug: String!
+        $skip: Int!
+        $first: Int!
     ) {
         questionSolutionArticles(
             questionSlug: $questionSlug
+            skip: $skip
+            first: $first
         ) {
             nodes {
                 slug
@@ -293,6 +297,8 @@ data = graphql(
     """,
     {
         "questionSlug": submissions[0]["titleSlug"],
+        "skip": 0,
+        "first": 10,
     },
 )
 
