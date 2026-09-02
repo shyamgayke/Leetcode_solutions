@@ -40,7 +40,7 @@ def graphql(query, variables=None):
         print(data)
         raise RuntimeError(
             f"LeetCode GraphQL error:\n{data['errors']}"
-    )
+        )
 
     return data["data"]
 
@@ -180,7 +180,7 @@ print(f"Timestamp: {submission['timestamp']}")
 
 data = graphql(
     """
-    query submissionDetail($submissionId: ID!) {
+    query submissionDetails($submissionId: Int!) {
         submissionDetail(
             submissionId: $submissionId
         ) {
@@ -198,7 +198,7 @@ data = graphql(
     },
 )
 
-details = data.get("submissionDetail")
+details = data.get("submissionDetails")
 
 if not details:
     raise RuntimeError(
