@@ -366,7 +366,7 @@ print("\nALL SOLUTIONS PROCESSED SUCCESSFULLY!")
 
 
 # --------------------------------------------------
-# 5. Test personal Solution Article retrieval
+# 5. Inspect personal Solution Article connection
 # --------------------------------------------------
 
 print("\nTesting personal Solution Article retrieval...")
@@ -379,7 +379,11 @@ data = graphql(
         ugcArticleSolutionArticles(
             questionSlug: $questionSlug
         ) {
-            __typename
+            edges {
+                node {
+                    __typename
+                }
+            }
         }
     }
     """,
@@ -388,4 +392,5 @@ data = graphql(
     }
 )
 
+print("\nPersonal Solution API response:")
 print(data)
