@@ -269,3 +269,42 @@ for latest in submissions:
 
 print("\nALL SUBMISSIONS PROCESSED SUCCESSFULLY!")
 
+# --------------------------------------------------
+# 4. Test Solution Article retrieval
+# --------------------------------------------------
+
+print("\nTesting Solution Article retrieval...")
+
+data = graphql(
+    """
+    query questionSolutionArticles(
+        $questionSlug: String!
+    ) {
+        questionSolutionArticles(
+            questionSlug: $questionSlug
+        ) {
+            nodes {
+                slug
+                title
+                content
+            }
+        }
+    }
+    """,
+    {
+        "questionSlug": submissions[0]["titleSlug"],
+    },
+)
+
+articles = data.get("questionSolutionArticles")
+
+if not articles:
+    print("No Solution Articles found.")
+else:
+    nodes = articles.get("nodes", [])
+
+    print(f"Found {len(nodes)} Solution Article(s).")
+
+    for article in nodes:
+        print(f"\nTitle: {article['title']}")
+        print(f"Slug: {article['slug']}")
