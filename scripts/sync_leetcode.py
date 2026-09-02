@@ -288,11 +288,16 @@ data = graphql(
         }
     }
     """,
-    {"filters": {}},
+    {
+        "filters": {
+            "questionSlug": "longest-common-prefix",
+            "skip": 0,
+            "first": 5
+        }
+    },
 )
 
 print(data)
-
 solutions = data.get("questionSolutions")
 
 print("\nSolution API response:")
