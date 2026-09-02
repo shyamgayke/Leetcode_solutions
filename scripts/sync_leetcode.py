@@ -6,9 +6,6 @@ LEETCODE_URL = "https://leetcode.com/graphql"
 session = os.environ.get("LEETCODE_SESSION")
 csrf_token = os.environ.get("LEETCODE_CSRF_TOKEN")
 
-if not session or not csrf_token:
-    raise RuntimeError("LeetCode credentials are missing.")
-
 cookies = {
     "LEETCODE_SESSION": session,
     "csrftoken": csrf_token,
@@ -47,7 +44,7 @@ def graphql(query, variables=None):
 
 
 # --------------------------------------------------
-# 1. Check authentication
+# 1. Authentication
 # --------------------------------------------------
 
 data = graphql("""
@@ -100,9 +97,7 @@ submissions = data["recentAcSubmissionList"]
 if not submissions:
     raise RuntimeError("No accepted submissions found.")
 
-print(
-    f"Found {len(submissions)} recent accepted submissions."
-)
+print("\nRecent accepted submissions:")
 
 for item in submissions:
     print(
@@ -112,49 +107,107 @@ for item in submissions:
 
 
 # --------------------------------------------------
-# 3. Test retrieving submission details
+# 3. Get submission list for latest problem
 # --------------------------------------------------
 
 latest = submissions[0]
 
-print("\nTesting submission:")
+print("\nTesting code retrieval:")
 print(f"Problem: {latest['title']}")
 print(f"Slug: {latest['titleSlug']}")
 
-
 data = graphql(
     """
-    query submissionDetails(
-        $titleSlug: String!
+    query questionSubmissionList(
+        $questionSlug: String!
+        $offset: Int!
+        $limit: Int!
     ) {
-        question(titleSlug: $titleSlug) {
-            questionId
-            questionFrontendId
-            title
-            titleSlug
-            difficulty
+        questionSubmissionList(
+            questionSlug: $questionSlug
+            offset: $offset
+            limit: $limit
+        ) {
+            submissions {
+                id
+                statusDisplay
+                lang
+                timestamp
+            }
         }
     }
     """,
     {
-        "titleSlug": latest["titleSlug"],
+        "questionSlug": latest["titleSlug"],
+        "offset": 0,
+        "limit": 10,
     },
 )
 
-question = data.get("question")
+result = data.get("questionSubmissionList")
 
-if not question:
+if not result:
     raise RuntimeError(
-        "Could not retrieve problem information."
+        "Could not retrieve submission list."
     )
 
-print("\nProblem details:")
-print(f"Question ID: {question['questionId']}")
-print(
-    f"Problem Number: "
-    f"{question['questionFrontendId']}"
-)
-print(f"Title: {question['title']}")
-print(f"Difficulty: {question['difficulty']}")
+submission_list = result["submissions"]
 
-print("\nSUCCESS: Problem information retrieved.")
+accepted = [
+    submission
+    for submission in submission_list
+    if submission["statusDisplay"] == "Accepted"
+]
+
+if not accepted:
+    raise RuntimeError(
+        "No accepted submission found."
+    )
+
+submission = accepted[0]
+
+print("\nAccepted submission found:")
+print(f"Submission ID: {submission['id']}")
+print(f"Language: {submission['lang']}")
+print(f"Timestamp: {submission['timestamp']}")
+
+
+# --------------------------------------------------
+# 4. Retrieve actual submitted code
+# --------------------------------------------------
+
+data = graphql(
+    """
+    query submissionDetail($submissionId: ID!) {
+        submissionDetail(
+            submissionId: $submissionId
+        ) {
+            id
+            code
+            lang
+            statusDisplay
+            runtime
+            memory
+        }
+    }
+    """,
+    {
+        "submissionId": submission["id"],
+    },
+)
+
+details = data.get("submissionDetail")
+
+if not details:
+    raise RuntimeError(
+        "Could not retrieve submission details."
+    )
+
+print("\nCODE RETRIEVED SUCCESSFULLY!")
+print("--------------------------------")
+print(details["code"])
+print("--------------------------------")
+print(f"Language: {details['lang']}")
+print(f"Status: {details['statusDisplay']}")
+print(f"Runtime: {details['runtime']}")
+print(f"Memory: {details['memory']}")
