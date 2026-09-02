@@ -118,6 +118,26 @@ print("\nTesting code retrieval:")
 print(f"Problem: {latest['title']}")
 print(f"Slug: {latest['titleSlug']}")
 
+# Get problem number
+data = graphql(
+    """
+    query questionInfo($titleSlug: String!) {
+        question(titleSlug: $titleSlug) {
+            questionFrontendId
+        }
+    }
+    """,
+    {
+        "titleSlug": latest["titleSlug"],
+    },
+)
+
+question = data["question"]
+
+problem_number = question["questionFrontendId"]
+
+print(f"Problem Number: {problem_number}")
+
 data = graphql(
     """
     query questionSubmissionList(
@@ -208,7 +228,7 @@ print("--------------------------------")
 # 5. Save solution to GitHub
 # --------------------------------------------------
 
-problem_number = "0001"
+problem_number = str(problem_number).zfill(4)
 folder_name = f"{problem_number}-{latest['titleSlug']}"
 
 os.makedirs(folder_name, exist_ok=True)
