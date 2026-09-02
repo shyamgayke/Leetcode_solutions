@@ -202,3 +202,23 @@ print("\nCODE RETRIEVED SUCCESSFULLY!")
 print("--------------------------------")
 print(details["code"])
 print("--------------------------------")
+
+
+# --------------------------------------------------
+# 5. Save solution to GitHub
+# --------------------------------------------------
+
+problem_number = "0001"
+folder_name = f"{problem_number}-{latest['titleSlug']}"
+
+os.makedirs(folder_name, exist_ok=True)
+
+solution_file = os.path.join(
+    folder_name,
+    "solution.cpp"
+)
+
+with open(solution_file, "w", encoding="utf-8") as file:
+    file.write(details["code"])
+
+print(f"\nSolution saved to: {solution_file}")
