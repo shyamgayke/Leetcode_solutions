@@ -181,20 +181,13 @@ print(f"Timestamp: {submission['timestamp']}")
 data = graphql(
     """
     query submissionDetails($submissionId: Int!) {
-        submissionDetail(
-            submissionId: $submissionId
-        ) {
-            id
+        submissionDetails(submissionId: $submissionId) {
             code
-            lang
-            statusDisplay
-            runtime
-            memory
         }
     }
     """,
     {
-        "submissionId": submission["id"],
+        "submissionId": int(submission["id"]),
     },
 )
 
@@ -209,7 +202,3 @@ print("\nCODE RETRIEVED SUCCESSFULLY!")
 print("--------------------------------")
 print(details["code"])
 print("--------------------------------")
-print(f"Language: {details['lang']}")
-print(f"Status: {details['statusDisplay']}")
-print(f"Runtime: {details['runtime']}")
-print(f"Memory: {details['memory']}")
