@@ -280,40 +280,19 @@ print("\nTesting Solution Article retrieval...")
 
 data = graphql(
     """
-    query questionSolutionArticles(
-        $questionSlug: String!
-        $skip: Int!
-        $first: Int!
-    ) {
-        questionSolutionArticles(
-            questionSlug: $questionSlug
-            skip: $skip
-            first: $first
-        ) {
-            nodes {
-                slug
-                title
-                content
-            }
+    query questionSolutions($titleSlug: String!) {
+        questionSolutions(titleSlug: $titleSlug) {
+            id
+            canSeeDetail
         }
     }
     """,
     {
-        "questionSlug": submissions[0]["titleSlug"],
-        "skip": 0,
-        "first": 10,
+        "titleSlug": submissions[0]["titleSlug"],
     },
 )
 
-articles = data.get("questionSolutionArticles")
+solutions = data.get("questionSolutions")
 
-if not articles:
-    print("No Solution Articles found.")
-else:
-    nodes = articles.get("nodes", [])
-
-    print(f"Found {len(nodes)} Solution Article(s).")
-
-    for article in nodes:
-        print(f"\nTitle: {article['title']}")
-        print(f"Slug: {article['slug']}")
+print("\nSolution API response:")
+print(solutions)
