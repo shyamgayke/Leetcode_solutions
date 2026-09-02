@@ -273,10 +273,10 @@ for latest in submissions:
 print("\nALL SUBMISSIONS PROCESSED SUCCESSFULLY!")
 
 # --------------------------------------------------
-# 4. Retrieve official LeetCode solution
+# 4. Retrieve official Solution
 # --------------------------------------------------
 
-print("\nTesting official Solution retrieval...")
+print("\nRetrieving official Solution...")
 
 data = graphql(
     """
@@ -301,16 +301,30 @@ if not question_solution:
     print("No official solution available.")
 else:
     print("\nOfficial Solution found!")
-    print(f"Solution ID: {question_solution.get('id')}")
-    print(
-        f"Can see detail: "
-        f"{question_solution.get('canSeeDetail')}"
-    )
 
     content = question_solution.get("content")
 
     if content:
-        print("\nSolution content retrieved successfully.")
-        print(content[:1000])
+        solution_folder = "0014-longest-common-prefix"
+        readme_file = os.path.join(
+            solution_folder,
+            "README.md"
+        )
+
+        readme_content = f"""# Longest Common Prefix
+
+## Solution
+
+{content}
+"""
+
+        with open(
+            readme_file,
+            "w",
+            encoding="utf-8"
+        ) as file:
+            file.write(readme_content)
+
+        print(f"Saved: {readme_file}")
     else:
         print("Solution exists, but no content was returned.")
