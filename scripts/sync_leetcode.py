@@ -273,58 +273,93 @@ for latest in submissions:
 print("\nALL SUBMISSIONS PROCESSED SUCCESSFULLY!")
 
 # --------------------------------------------------
-# 4. Retrieve official Solution
+# 4. Retrieve official Solution for each problem
 # --------------------------------------------------
 
-print("\nRetrieving official Solution...")
+print("\nRetrieving official Solutions...")
 
-data = graphql(
-    """
-    query officialSolution($titleSlug: String!) {
-        question(titleSlug: $titleSlug) {
-            solution {
-                id
-                canSeeDetail
-                content
+for latest in submissions:
+
+    title = latest["title"]
+    slug = latest["titleSlug"]
+
+    # Get problem number
+    data = graphql(
+        """
+        query questionInfo($titleSlug: String!) {
+            question(titleSlug: $titleSlug) {
+                questionFrontendId
             }
         }
-    }
-    """,
-    {
-        "titleSlug": "longest-common-prefix",
-    },
-)
+        """,
+        {
+            "titleSlug": slug,
+        },
+    )
 
-question_solution = data["question"].get("solution")
+    question = data["question"]
 
-if not question_solution:
-    print("No official solution available.")
-else:
-    print("\nOfficial Solution found!")
+    problem_number = str(
+        question["questionFrontendId"]
+    ).zfill(4)
+
+    solution_folder = (
+        f"{problem_number}-{slug}"
+    )
+
+    print(f"\nProcessing Solution: {title}")
+
+    # Retrieve official solution
+    data = graphql(
+        """
+        query officialSolution($titleSlug: String!) {
+            question(titleSlug: $titleSlug) {
+                solution {
+                    id
+                    canSeeDetail
+                    content
+                }
+            }
+        }
+        """,
+        {
+            "titleSlug": slug,
+        },
+    )
+
+    question_solution = (
+        data["question"].get("solution")
+    )
+
+    if not question_solution:
+        print("No official solution available.")
+        continue
 
     content = question_solution.get("content")
 
-    if content:
-        solution_folder = "0014-longest-common-prefix"
-        readme_file = os.path.join(
-            solution_folder,
-            "README.md"
-        )
+    if not content:
+        print("Solution exists, but no content was returned.")
+        continue
 
-        readme_content = f"""# Longest Common Prefix
+    readme_file = os.path.join(
+        solution_folder,
+        "README.md"
+    )
 
-## Solution
+    readme_content = f"""# {title}
+
+## Official Solution
 
 {content}
 """
 
-        with open(
-            readme_file,
-            "w",
-            encoding="utf-8"
-        ) as file:
-            file.write(readme_content)
+    with open(
+        readme_file,
+        "w",
+        encoding="utf-8"
+    ) as file:
+        file.write(readme_content)
 
-        print(f"Saved: {readme_file}")
-    else:
-        print("Solution exists, but no content was returned.")
+    print(f"Saved: {readme_file}")
+
+print("\nALL SOLUTIONS PROCESSED SUCCESSFULLY!")
