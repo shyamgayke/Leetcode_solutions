@@ -28,7 +28,7 @@ def graphql(query, variables=None):
         },
         headers=headers,
         cookies=cookies,
-        timeout=30,
+        timeout=60,
     )
 
     if response.status_code != 200:
