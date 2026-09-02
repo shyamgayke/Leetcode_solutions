@@ -365,11 +365,12 @@ for latest in submissions:
 print("\nALL SOLUTIONS PROCESSED SUCCESSFULLY!")
 
 
-# --------------------------------------------------
-# 5. Retrieve personal Solution Article details
+
+   # --------------------------------------------------
+# 5. Inspect personal Solution Article structure
 # --------------------------------------------------
 
-print("\nTesting personal Solution Article details...")
+print("\nTesting personal Solution Article structure...")
 
 data = graphql(
     """
@@ -383,7 +384,6 @@ data = graphql(
                 node {
                     title
                     slug
-                    content
                 }
             }
         }
@@ -402,5 +402,3 @@ for edge in data["ugcArticleSolutionArticles"]["edges"]:
     print("\n-----------------------------")
     print(f"Title: {article.get('title')}")
     print(f"Slug: {article.get('slug')}")
-    print("Content:")
-    print(article.get("content"))
