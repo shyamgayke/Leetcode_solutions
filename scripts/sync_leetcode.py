@@ -31,7 +31,10 @@ def graphql(query, variables=None):
         timeout=30,
     )
 
-    response.raise_for_status()
+    if response.status_code != 200:
+        print("\nRAW HTTP RESPONSE:")
+        print(response.text)
+        response.raise_for_status()
 
     data = response.json()
 
