@@ -363,3 +363,22 @@ for latest in submissions:
     print(f"Saved: {readme_file}")
 
 print("\nALL SOLUTIONS PROCESSED SUCCESSFULLY!")
+
+
+# --------------------------------------------------
+# 5. Test personal Solution Article retrieval
+# --------------------------------------------------
+
+print("\nTesting personal Solution Article retrieval...")
+
+data = graphql(
+    """
+    query {
+        ugcArticleSolutionArticles {
+            __typename
+        }
+    }
+    """
+)
+
+print(data)
