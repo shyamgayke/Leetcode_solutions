@@ -365,47 +365,33 @@ for latest in submissions:
 print("\nALL SOLUTIONS PROCESSED SUCCESSFULLY!")
 
 
-
 # --------------------------------------------------
-# 5. Inspect personal Solution Article authors
+# 5. Test direct Solution Article retrieval
 # --------------------------------------------------
 
-print("\nTesting personal Solution Article authors...")
+print("\nTesting direct Solution Article retrieval...")
+
+article_slug = "longest-prefix-in-a-string-array-by-z37v-ipk9"
 
 data = graphql(
     """
-    query ugcArticleSolutionArticles(
-        $questionSlug: String!
+    query solutionArticleInformation(
+        $slug: String!
     ) {
-        ugcArticleSolutionArticles(
-            questionSlug: $questionSlug
+        solutionArticleInformation(
+            slug: $slug
         ) {
-            edges {
-                node {
-                    title
-                    slug
-                    author {
-                        userName
-                    }
-                }
-            }
+            title
+            content
         }
     }
     """,
     {
-        "questionSlug": "longest-common-prefix"
+        "slug": article_slug
     }
 )
 
-print("\nPersonal Solution Articles:")
-
-for edge in data["ugcArticleSolutionArticles"]["edges"]:
-    article = edge["node"]
-
-    print("\n-----------------------------")
-    print(f"Title: {article.get('title')}")
-    print(f"Slug: {article.get('slug')}")
-    print(
-        f"Author: "
-        f"{article.get('author', {}).get('username')}"
-    )
+print("\nArticle:")
+print("Title:", data["solutionArticleInformation"]["title"])
+print("Content:")
+print(data["solutionArticleInformation"]["content"])
