@@ -366,10 +366,10 @@ print("\nALL SOLUTIONS PROCESSED SUCCESSFULLY!")
 
 
 # --------------------------------------------------
-# 5. Inspect personal Solution Article connection
+# 5. Retrieve personal Solution Article details
 # --------------------------------------------------
 
-print("\nTesting personal Solution Article retrieval...")
+print("\nTesting personal Solution Article details...")
 
 data = graphql(
     """
@@ -381,7 +381,9 @@ data = graphql(
         ) {
             edges {
                 node {
-                    __typename
+                    title
+                    slug
+                    content
                 }
             }
         }
@@ -392,5 +394,13 @@ data = graphql(
     }
 )
 
-print("\nPersonal Solution API response:")
-print(data)
+print("\nPersonal Solution Articles:")
+
+for edge in data["ugcArticleSolutionArticles"]["edges"]:
+    article = edge["node"]
+
+    print("\n-----------------------------")
+    print(f"Title: {article.get('title')}")
+    print(f"Slug: {article.get('slug')}")
+    print("Content:")
+    print(article.get("content"))
