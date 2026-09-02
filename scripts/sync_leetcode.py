@@ -21,34 +21,47 @@ headers = {
     "User-Agent": "Mozilla/5.0",
 }
 
+
+def graphql(query, variables=None):
+    response = requests.post(
+        LEETCODE_URL,
+        json={
+            "query": query,
+            "variables": variables or {},
+        },
+        headers=headers,
+        cookies=cookies,
+        timeout=30,
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    if "errors" in data:
+        raise RuntimeError(
+            f"LeetCode GraphQL error:\n{data['errors']}"
+        )
+
+    return data["data"]
+
+
 # --------------------------------------------------
 # 1. Check authentication
 # --------------------------------------------------
 
-query = """
+data = graphql("""
 query {
     userStatus {
         isSignedIn
         username
     }
 }
-"""
+""")
 
-response = requests.post(
-    LEETCODE_URL,
-    json={"query": query},
-    headers=headers,
-    cookies=cookies,
-    timeout=30,
-)
+user_status = data["userStatus"]
 
-response.raise_for_status()
-
-data = response.json()
-
-user_status = data.get("data", {}).get("userStatus", {})
-
-if not user_status.get("isSignedIn"):
+if not user_status["isSignedIn"]:
     raise RuntimeError("LeetCode authentication failed.")
 
 username = user_status["username"]
@@ -60,55 +73,46 @@ print(f"Logged in as: {username}")
 # 2. Get recent accepted submissions
 # --------------------------------------------------
 
-query = """
-query recentAcSubmissions($username: String!, $limit: Int!) {
-    recentAcSubmissionList(username: $username, limit: $limit) {
-        title
-        titleSlug
-        timestamp
+data = graphql(
+    """
+    query recentAcSubmissions(
+        $username: String!
+        $limit: Int!
+    ) {
+        recentAcSubmissionList(
+            username: $username
+            limit: $limit
+        ) {
+            title
+            titleSlug
+            timestamp
+        }
     }
-}
-"""
-
-variables = {
-    "username": username,
-    "limit": 5,
-}
-
-response = requests.post(
-    LEETCODE_URL,
-    json={
-        "query": query,
-        "variables": variables,
+    """,
+    {
+        "username": username,
+        "limit": 5,
     },
-    headers=headers,
-    cookies=cookies,
-    timeout=30,
 )
 
-response.raise_for_status()
-
-data = response.json()
-
-if "errors" in data:
-    raise RuntimeError(data["errors"])
-
-submissions = data["data"]["recentAcSubmissionList"]
+submissions = data["recentAcSubmissionList"]
 
 if not submissions:
     raise RuntimeError("No accepted submissions found.")
 
-print(f"Found {len(submissions)} recent accepted submissions.")
+print(
+    f"Found {len(submissions)} recent accepted submissions."
+)
 
-for submission in submissions:
+for item in submissions:
     print(
-        f"- {submission['title']} "
-        f"({submission['titleSlug']})"
+        f"- {item['title']} "
+        f"({item['titleSlug']})"
     )
 
 
 # --------------------------------------------------
-# 3. Get details of the most recent submission
+# 3. Test retrieving submission details
 # --------------------------------------------------
 
 latest = submissions[0]
@@ -118,62 +122,39 @@ print(f"Problem: {latest['title']}")
 print(f"Slug: {latest['titleSlug']}")
 
 
-query = """
-query submissionList(
-    $username: String!
-    $slug: String!
-) {
-    submissionList(
-        username: $username
-        questionSlug: $slug
-        limit: 1
+data = graphql(
+    """
+    query submissionDetails(
+        $titleSlug: String!
     ) {
-        submissions {
-            id
-            lang
-            statusDisplay
+        question(titleSlug: $titleSlug) {
+            questionId
+            questionFrontendId
+            title
+            titleSlug
+            difficulty
         }
     }
-}
-"""
-
-variables = {
-    "username": username,
-    "slug": latest["titleSlug"],
-}
-
-response = requests.post(
-    LEETCODE_URL,
-    json={
-        "query": query,
-        "variables": variables,
+    """,
+    {
+        "titleSlug": latest["titleSlug"],
     },
-    headers=headers,
-    cookies=cookies,
-    timeout=30,
 )
 
-response.raise_for_status()
+question = data.get("question")
 
-data = response.json()
-
-if "errors" in data:
-    raise RuntimeError(data["errors"])
-
-submission_data = (
-    data.get("data", {})
-    .get("submissionList", {})
-    .get("submissions", [])
-)
-
-if not submission_data:
+if not question:
     raise RuntimeError(
-        "Could not retrieve submission details."
+        "Could not retrieve problem information."
     )
 
-submission = submission_data[0]
+print("\nProblem details:")
+print(f"Question ID: {question['questionId']}")
+print(
+    f"Problem Number: "
+    f"{question['questionFrontendId']}"
+)
+print(f"Title: {question['title']}")
+print(f"Difficulty: {question['difficulty']}")
 
-print("\nSubmission details:")
-print(f"Submission ID: {submission['id']}")
-print(f"Language: {submission['lang']}")
-print(f"Status: {submission['statusDisplay']}")
+print("\nSUCCESS: Problem information retrieved.")
